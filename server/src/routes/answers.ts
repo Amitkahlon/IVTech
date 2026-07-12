@@ -5,7 +5,7 @@ import { requireAuth } from '../middleware/auth';
 
 export const answersRouter = Router();
 
-answersRouter.post('/createAnswer', requireAuth, async (req, res) => {
+answersRouter.post('/answer', requireAuth, async (req, res) => {
   const { questionId, body } = req.body ?? {};
 
   if (typeof questionId !== 'string' || !mongoose.Types.ObjectId.isValid(questionId)) {
@@ -33,7 +33,7 @@ answersRouter.post('/createAnswer', requireAuth, async (req, res) => {
   res.status(201).json({ answer });
 });
 
-answersRouter.post('/voteAnswer', requireAuth, async (req, res) => {
+answersRouter.post('/vote', requireAuth, async (req, res) => {
   const { answerId, value } = req.body ?? {};
 
   if (typeof answerId !== 'string' || !mongoose.Types.ObjectId.isValid(answerId)) {

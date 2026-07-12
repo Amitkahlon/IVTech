@@ -17,7 +17,7 @@ export const answersApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     createAnswer: builder.mutation<{ answer: Answer }, CreateAnswerRequest>({
       query: (newAnswer) => ({
-        url: '/createAnswer',
+        url: '/answer',
         method: 'POST',
         body: newAnswer,
       }),
@@ -25,7 +25,7 @@ export const answersApi = apiSlice.injectEndpoints({
     }),
     voteAnswer: builder.mutation<{ voted: boolean; value?: 1 | -1 }, VoteAnswerRequest>({
       query: ({ answerId, value }) => ({
-        url: '/voteAnswer',
+        url: '/vote',
         method: 'POST',
         body: { answerId, value },
       }),

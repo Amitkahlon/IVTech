@@ -19,7 +19,7 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.use('/api/auth', authRouter);
+app.use('/api', authRouter);
 app.use('/api', questionsRouter);
 app.use('/api', answersRouter);
 

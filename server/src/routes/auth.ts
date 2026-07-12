@@ -24,7 +24,7 @@ authRouter.post('/login', async (req, res) => {
   res.json({ token, expiresIn: '1h' });
 });
 
-authRouter.get('/userinfo', requireAuth, async (req, res) => {
+authRouter.get('/userInfo', requireAuth, async (req, res) => {
   const user = await User.findById(req.user!.sub).select('-passwordHash');
   if (!user) {
     res.status(404).json({ error: 'User not found' });

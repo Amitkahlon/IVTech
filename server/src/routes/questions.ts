@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import mongoose from 'mongoose';
 import { Answer, Question, User } from '../models';
-import { requireAuth, optionalAuth } from '../middleware/auth';
+import { requireAuth } from '../middleware/auth';
 import { authorLookupStages } from '../utils/aggregation';
 
 export const questionsRouter = Router();
@@ -18,7 +18,7 @@ function parsePositiveInt(value: unknown, fallback: number): number {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
-questionsRouter.get('/getQuestions', async (req, res) => {
+questionsRouter.get('/getQuestions', requireAuth, async (req, res) => {
   const { search, page: pageParam, limit: limitParam } = req.query;
 
   const page = parsePositiveInt(pageParam, 1);
@@ -86,24 +86,25 @@ questionsRouter.get('/getQuestions', async (req, res) => {
   res.json({ questions, page, limit });
 });
 
-questionsRouter.get('/getQuestion/:id', optionalAuth, async (req, res) => {
-  const id = String(req.params.id);
+questionsRouter.get('/getQuestionAnswer/:questionId', requireAuth, async (req, res) => {
+  const questionId = String(req.params.questionId);
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
+  if (!mongoose.Types.ObjectId.isValid(questionId)) {
     res.status(400).json({ error: 'Invalid question id' });
     return;
   }
 
-  const question = await Question.findById(id);
+  const question = await Question.findById(questionId);
   if (!question) {
     res.status(404).json({ error: 'Question not found' });
     return;
   }
 
   const author = await User.findById(question.authorId).select('username');
+  const currentUserId = new mongoose.Types.ObjectId(req.user!.sub);
 
-  const pipeline: mongoose.PipelineStage[] = [
-    { $match: { questionId: new mongoose.Types.ObjectId(id) } },
+  const answers = await Answer.aggregate([
+    { $match: { questionId: new mongoose.Types.ObjectId(questionId) } },
     {
       $lookup: {
         from: 'votes',
@@ -115,14 +116,6 @@ questionsRouter.get('/getQuestion/:id', optionalAuth, async (req, res) => {
     {
       $addFields: {
         voteCount: { $sum: '$votes.value' },
-      },
-    },
-  ];
-
-  if (req.user) {
-    const currentUserId = new mongoose.Types.ObjectId(req.user.sub);
-    pipeline.push({
-      $addFields: {
         myVote: {
           $let: {
             vars: {
@@ -138,10 +131,7 @@ questionsRouter.get('/getQuestion/:id', optionalAuth, async (req, res) => {
           },
         },
       },
-    });
-  }
-
-  pipeline.push(
+    },
     { $sort: { voteCount: -1, createdAt: 1 } },
     ...authorLookupStages(),
     {
@@ -155,9 +145,7 @@ questionsRouter.get('/getQuestion/:id', optionalAuth, async (req, res) => {
         myVote: 1,
       },
     },
-  );
-
-  const answers = await Answer.aggregate(pipeline);
+  ]);
 
   res.json({
     question: { ...question.toObject(), username: author?.username },

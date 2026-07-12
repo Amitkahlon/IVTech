@@ -77,7 +77,7 @@ export const questionsApi = apiSlice.injectEndpoints({
           : [{ type: 'Question' as const, id: 'LIST' }],
     }),
     getQuestion: builder.query<GetQuestionResponse, string>({
-      query: (id) => `/getQuestion/${id}`,
+      query: (id) => `/getQuestionAnswer/${id}`,
       providesTags: (_result, _error, id) => [{ type: 'Question', id }],
     }),
   }),
