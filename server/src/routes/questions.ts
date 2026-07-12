@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { Question } from '../models';
+import { requireAuth } from '../middleware/auth';
 
 export const questionsRouter = Router();
 
@@ -46,4 +47,27 @@ questionsRouter.get('/getQuestions', async (_req, res) => {
   ]);
 
   res.json({ questions });
+});
+
+questionsRouter.post('/createQuestion', requireAuth, async (req, res) => {
+  const { title, body, tags } = req.body ?? {};
+
+  if (typeof title !== 'string' || !title.trim() || typeof body !== 'string' || !body.trim()) {
+    res.status(400).json({ error: 'title and body are required' });
+    return;
+  }
+
+  if (tags !== undefined && (!Array.isArray(tags) || !tags.every((tag) => typeof tag === 'string'))) {
+    res.status(400).json({ error: 'tags must be an array of strings' });
+    return;
+  }
+
+  const question = await Question.create({
+    title,
+    body,
+    tags: tags ?? [],
+    authorId: req.user!.sub,
+  });
+
+  res.status(201).json({ question });
 });
