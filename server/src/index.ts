@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDB } from './db';
 import { authRouter } from './routes/auth';
+import { questionsRouter } from './routes/questions';
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.get('/api/health', (_req, res) => {
 });
 
 app.use('/api/auth', authRouter);
+app.use('/api', questionsRouter);
 
 connectDB(mongoUri)
   .then(() => {
