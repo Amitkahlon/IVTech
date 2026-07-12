@@ -6,10 +6,11 @@
   --border: #e3e6e8;
   --link: #0074cc;
   --link-hover: #0a95ff;
-  --accent: #f48225;
-  --accent-text: #ffffff;
   --danger: #d1383d;
-  --success: #3b8a3e;
+  --button-bg: #e4e6e8;
+  --button-bg-hover: #d3d6d9;
+  --tag-bg: #e4e6e8;
+  --overlay: rgba(0, 0, 0, 0.5);
 
   font: 15px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   color-scheme: light dark;
@@ -26,8 +27,10 @@
     --border: #3a3a3a;
     --link: #6cb6ff;
     --link-hover: #9ccbff;
-    --accent: #f48225;
-    --accent-text: #1b1b1b;
+    --button-bg: #2a2c30;
+    --button-bg-hover: #383b40;
+    --tag-bg: #2a2c30;
+    --overlay: rgba(0, 0, 0, 0.7);
   }
 }
 
@@ -45,12 +48,18 @@ body {
 
 h1 {
   font-size: 22px;
-  margin: 0 0 12px;
+  margin: 0 0 4px;
 }
 
 h2 {
   font-size: 17px;
   margin: 24px 0 8px;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 16px 0;
 }
 
 a {
@@ -64,28 +73,28 @@ a:hover {
 }
 
 .page {
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 24px 16px 64px;
 }
 
 .login-page {
   max-width: 320px;
+  text-align: center;
+  padding-top: 64px;
 }
 
-.top-bar {
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.login-page form {
+  text-align: left;
 }
 
-.top-bar .brand {
-  color: var(--accent);
-  font-weight: 700;
-  font-size: 18px;
+.login-logo {
+  margin: 0 auto 16px;
+}
+
+.login-submit {
+  display: block;
+  margin: 16px auto 0;
 }
 
 input,
@@ -95,6 +104,7 @@ button {
 }
 
 input[type='text'],
+input[type='password'],
 input:not([type]),
 textarea {
   width: 100%;
@@ -106,7 +116,7 @@ textarea {
 }
 
 textarea {
-  min-height: 120px;
+  min-height: 100px;
   resize: vertical;
 }
 
@@ -118,16 +128,16 @@ label {
 }
 
 button {
-  background: var(--link);
-  color: #fff;
-  border: none;
+  background: var(--button-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
   border-radius: 3px;
-  padding: 8px 14px;
+  padding: 8px 16px;
   cursor: pointer;
 }
 
 button:hover {
-  background: var(--link-hover);
+  background: var(--button-bg-hover);
 }
 
 button:disabled {
@@ -140,21 +150,58 @@ button:disabled {
   font-size: 13px;
 }
 
-.search-bar {
+/* Header */
+
+.top-bar {
+  background: var(--bg);
+  border-bottom: 2px solid var(--link);
+  padding: 12px 24px;
   display: flex;
-  gap: 8px;
-  margin: 16px 0;
+  align-items: center;
+  gap: 24px;
 }
 
-.search-form {
+.logo {
+  flex: 0 0 auto;
+  width: 64px;
+  height: 40px;
+  background: var(--tag-bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
   display: flex;
-  gap: 8px;
-  flex: 1;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  font-weight: 700;
+  font-size: 12px;
 }
 
-.search-bar input {
+.header-search {
   flex: 1;
+  max-width: 520px;
 }
+
+.top-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+}
+
+.logout-link {
+  background: none;
+  border: none;
+  color: var(--text);
+  padding: 0;
+}
+
+.logout-link:hover {
+  background: none;
+  color: var(--link);
+  text-decoration: underline;
+}
+
+/* Question list */
 
 .question-list {
   list-style: none;
@@ -165,36 +212,70 @@ button:disabled {
 .question-item {
   display: flex;
   gap: 16px;
-  padding: 12px 0;
+  padding: 16px 0;
   border-bottom: 1px solid var(--border);
 }
 
 .question-stats {
   flex: 0 0 70px;
-  text-align: right;
-  font-size: 13px;
+  text-align: center;
+  font-size: 12px;
   color: var(--text-muted);
 }
 
 .question-stats div {
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
-.question-summary .tag {
+.question-stats strong {
+  display: block;
+  font-size: 16px;
+  color: var(--text);
+}
+
+.question-summary {
+  flex: 1;
+  min-width: 0;
+}
+
+.question-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.excerpt {
+  color: var(--text-muted);
+  margin: 4px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.question-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tag {
   display: inline-block;
-  background: var(--bg-subtle);
-  border: 1px solid var(--border);
-  color: var(--link);
+  background: var(--tag-bg);
+  color: var(--text);
   font-size: 12px;
-  padding: 2px 6px;
-  border-radius: 3px;
+  padding: 3px 10px;
+  border-radius: 12px;
   margin: 4px 4px 0 0;
 }
 
 .meta {
   color: var(--text-muted);
   font-size: 13px;
+  text-align: right;
 }
+
+/* Answers */
 
 .answer {
   display: flex;
@@ -203,31 +284,98 @@ button:disabled {
   border-bottom: 1px solid var(--border);
 }
 
+.answer-body .meta {
+  text-align: left;
+  margin-top: 8px;
+}
+
 .vote-controls {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  flex: 0 0 40px;
+  gap: 2px;
+  flex: 0 0 32px;
 }
 
 .vote-controls button {
   background: none;
+  border: none;
   color: var(--text-muted);
-  border: 1px solid var(--border);
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  font-size: 16px;
+  width: auto;
+  height: auto;
+  padding: 2px;
+  font-size: 14px;
   line-height: 1;
 }
 
 .vote-controls button:hover {
   color: var(--link);
-  background: var(--bg-subtle);
+  background: none;
 }
 
 .vote-count {
   font-weight: 700;
-  font-size: 15px;
+  font-size: 16px;
+}
+
+.answer-form textarea {
+  margin-bottom: 8px;
+}
+
+.answer-form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Modal */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 10;
+}
+
+.modal {
+  background: var(--bg);
+  border-radius: 6px;
+  padding: 24px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-header h2 {
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  line-height: 1;
+  padding: 0;
+  color: var(--text-muted);
+}
+
+.modal-close:hover {
+  background: none;
+  color: var(--text);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
 }

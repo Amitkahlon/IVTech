@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useGetQuestionQuery } from '../features/questions/questionsApi';
 import { useCreateAnswerMutation, useVoteAnswerMutation } from '../features/answers/answersApi';
 import { Layout } from '../components/Layout';
+import { formatDate } from '../utils/formatDate';
 
 export function QuestionDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -49,17 +50,22 @@ export function QuestionDetailPage() {
   return (
     <Layout>
       <h1>{question.title}</h1>
+      <p className="meta">
+        Asked {formatDate(question.createdAt)} by {question.username ?? 'unknown'}
+      </p>
+
+      <hr />
+
       <p>{question.body}</p>
-      <div>
+      <div className="tags">
         {question.tags.map((tag) => (
           <span className="tag" key={tag}>
             {tag}
           </span>
         ))}
       </div>
-      <p className="meta">asked by {question.username ?? 'unknown'}</p>
 
-      <h2>{answers.length} Answers</h2>
+      <h2>Answers</h2>
       {answers.map((answer) => (
         <div className="answer" key={answer._id}>
           <div className="vote-controls">
@@ -71,22 +77,29 @@ export function QuestionDetailPage() {
               ▼
             </button>
           </div>
-          <div>
+          <div className="answer-body">
             <p>{answer.body}</p>
-            <p className="meta">answered by {answer.username ?? 'unknown'}</p>
+            <p className="meta">
+              answered {formatDate(answer.createdAt)} by {answer.username ?? 'unknown'}
+            </p>
           </div>
         </div>
       ))}
 
-      <h2>Add an answer</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <textarea value={answerBody} onChange={(event) => setAnswerBody(event.target.value)} />
-        </div>
+      <hr />
+
+      <form onSubmit={handleSubmit} className="answer-form">
+        <textarea
+          value={answerBody}
+          onChange={(event) => setAnswerBody(event.target.value)}
+          placeholder="Type answer here"
+        />
         {submitError && <p className="error-text">Failed to submit answer.</p>}
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Submitting...' : 'Submit answer'}
-        </button>
+        <div className="answer-form-actions">
+          <button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Submitting...' : 'Answer'}
+          </button>
+        </div>
       </form>
     </Layout>
   );

@@ -24,31 +24,28 @@ export function LoginPage() {
 
   return (
     <div className="page login-page">
-      <h1>Log in</h1>
+      <div className="logo login-logo">LOGO</div>
+      <h1>IVOverflow</h1>
       <form onSubmit={handleSubmit}>
-        <div>
-          <label>
-            Username
-            <input
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              autoComplete="username"
-            />
-          </label>
-        </div>
-        <div>
-          <label>
-            Password
-            <input
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              autoComplete="current-password"
-            />
-          </label>
-        </div>
+        <label>
+          Username
+          <input
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+            autoComplete="username"
+          />
+        </label>
+        <label>
+          Password
+          <input
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            autoComplete="current-password"
+          />
+        </label>
         {error && <p className="error-text">Invalid username or password.</p>}
-        <button type="submit" disabled={isLoading}>
+        <button type="submit" disabled={isLoading} className="login-submit">
           {isLoading ? 'Logging in...' : 'Login'}
         </button>
       </form>
