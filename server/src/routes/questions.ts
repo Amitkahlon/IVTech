@@ -5,12 +5,23 @@ import { requireAuth } from '../middleware/auth';
 
 export const questionsRouter = Router();
 
+const DEFAULT_LIMIT = 10;
+const MAX_LIMIT = 50;
+
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+function parsePositiveInt(value: unknown, fallback: number): number {
+  const parsed = parseInt(String(value), 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
 questionsRouter.get('/getQuestions', async (req, res) => {
-  const { search } = req.query;
+  const { search, page: pageParam, limit: limitParam } = req.query;
+
+  const page = parsePositiveInt(pageParam, 1);
+  const limit = Math.min(parsePositiveInt(limitParam, DEFAULT_LIMIT), MAX_LIMIT);
 
   const pipeline: mongoose.PipelineStage[] = [];
 
@@ -52,6 +63,8 @@ questionsRouter.get('/getQuestions', async (req, res) => {
       },
     },
     { $sort: { createdAt: -1 } },
+    { $skip: (page - 1) * limit },
+    { $limit: limit },
     {
       $project: {
         title: 1,
@@ -67,7 +80,7 @@ questionsRouter.get('/getQuestions', async (req, res) => {
 
   const questions = await Question.aggregate(pipeline);
 
-  res.json({ questions });
+  res.json({ questions, page, limit });
 });
 
 questionsRouter.post('/createQuestion', requireAuth, async (req, res) => {
