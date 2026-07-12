@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import mongoose from 'mongoose';
-import { Answer, Question } from '../models';
+import { Answer, Question, User } from '../models';
 import { requireAuth } from '../middleware/auth';
+import { authorLookupStages } from '../utils/aggregation';
 
 export const questionsRouter = Router();
 
@@ -65,12 +66,14 @@ questionsRouter.get('/getQuestions', async (req, res) => {
     { $sort: { createdAt: -1 } },
     { $skip: (page - 1) * limit },
     { $limit: limit },
+    ...authorLookupStages(),
     {
       $project: {
         title: 1,
         body: 1,
         tags: 1,
         authorId: 1,
+        username: 1,
         createdAt: 1,
         answerCount: 1,
         voteCount: 1,
@@ -97,6 +100,8 @@ questionsRouter.get('/getQuestion/:id', async (req, res) => {
     return;
   }
 
+  const author = await User.findById(question.authorId).select('username');
+
   const answers = await Answer.aggregate([
     { $match: { questionId: new mongoose.Types.ObjectId(id) } },
     {
@@ -113,18 +118,23 @@ questionsRouter.get('/getQuestion/:id', async (req, res) => {
       },
     },
     { $sort: { voteCount: -1, createdAt: 1 } },
+    ...authorLookupStages(),
     {
       $project: {
         body: 1,
         questionId: 1,
         authorId: 1,
+        username: 1,
         createdAt: 1,
         voteCount: 1,
       },
     },
   ]);
 
-  res.json({ question, answers });
+  res.json({
+    question: { ...question.toObject(), username: author?.username },
+    answers,
+  });
 });
 
 questionsRouter.post('/createQuestion', requireAuth, async (req, res) => {

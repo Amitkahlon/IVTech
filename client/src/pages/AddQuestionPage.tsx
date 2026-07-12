@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCreateQuestionMutation } from '../features/questions/questionsApi';
+import { Layout } from '../components/Layout';
 
 export function AddQuestionPage() {
   const [title, setTitle] = useState('');
@@ -25,7 +26,7 @@ export function AddQuestionPage() {
   };
 
   return (
-    <div>
+    <Layout>
       <h1>Ask a question</h1>
       <form onSubmit={handleSubmit}>
         <div>
@@ -46,11 +47,11 @@ export function AddQuestionPage() {
             <input value={tags} onChange={(event) => setTags(event.target.value)} />
           </label>
         </div>
-        {error && <p>Failed to create question.</p>}
+        {error && <p className="error-text">Failed to create question.</p>}
         <button type="submit" disabled={isLoading}>
           {isLoading ? 'Submitting...' : 'Submit'}
         </button>
       </form>
-    </div>
+    </Layout>
   );
 }

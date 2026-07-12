@@ -23,8 +23,8 @@ export function LoginPage() {
   };
 
   return (
-    <div>
-      <h1>Login</h1>
+    <div className="page login-page">
+      <h1>Log in</h1>
       <form onSubmit={handleSubmit}>
         <div>
           <label>
@@ -47,7 +47,7 @@ export function LoginPage() {
             />
           </label>
         </div>
-        {error && <p>Invalid username or password.</p>}
+        {error && <p className="error-text">Invalid username or password.</p>}
         <button type="submit" disabled={isLoading}>
           {isLoading ? 'Logging in...' : 'Login'}
         </button>

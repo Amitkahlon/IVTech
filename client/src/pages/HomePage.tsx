@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { logout } from '../features/auth/authSlice';
+import { useAppSelector, useAppDispatch } from '../app/hooks';
 import { useGetQuestionsQuery } from '../features/questions/questionsApi';
 import { selectSearchQuery, setSearchQuery } from '../features/questions/questionsSlice';
+import { Layout } from '../components/Layout';
 
 export function HomePage() {
   const dispatch = useAppDispatch();
@@ -20,38 +20,50 @@ export function HomePage() {
   };
 
   return (
-    <div>
-      <h1>You are logged in.</h1>
-      <Link to="/questions/new">Ask a question</Link>
-      <br />
-      <button onClick={() => dispatch(logout())}>Log out</button>
+    <Layout>
+      <h1>Latest questions</h1>
 
-      <hr />
+      <div className="search-bar">
+        <form className="search-form" onSubmit={handleSearchSubmit}>
+          <input
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
+            placeholder="Search questions..."
+          />
+          <button type="submit">Search</button>
+        </form>
+        <Link to="/questions/new">
+          <button type="button">Ask a question</button>
+        </Link>
+      </div>
 
-      <form onSubmit={handleSearchSubmit}>
-        <input
-          value={searchInput}
-          onChange={(event) => setSearchInput(event.target.value)}
-          placeholder="Search questions..."
-        />
-        <button type="submit">Search</button>
-      </form>
-
-      <h2>Latest questions</h2>
       {isLoading && <p>Loading...</p>}
-      {isError && <p>Failed to load questions.</p>}
+      {isError && <p className="error-text">Failed to load questions.</p>}
       {data && data.questions.length === 0 && <p>No questions found.</p>}
-      <ul>
+
+      <ul className="question-list">
         {data?.questions.map((question) => (
-          <li key={question._id}>
-            <Link to={`/questions/${question._id}`}>
-              <strong>{question.title}</strong>
-            </Link>{' '}
-            — {question.answerCount} answers, {question.voteCount} votes
-            {question.tags.length > 0 && <> [{question.tags.join(', ')}]</>}
+          <li key={question._id} className="question-item">
+            <div className="question-stats">
+              <div>{question.voteCount} votes</div>
+              <div>{question.answerCount} answers</div>
+            </div>
+            <div className="question-summary">
+              <Link to={`/questions/${question._id}`}>{question.title}</Link>
+              <div className="meta">
+                asked by {question.username ?? 'unknown'}
+              </div>
+              <div>
+                {question.tags.map((tag) => (
+                  <span className="tag" key={tag}>
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
           </li>
         ))}
       </ul>
-    </div>
+    </Layout>
   );
 }

@@ -1,13 +1,15 @@
 import { useState, type FormEvent } from 'react';
 import { useParams } from 'react-router-dom';
 import { useGetQuestionQuery } from '../features/questions/questionsApi';
-import { useCreateAnswerMutation } from '../features/answers/answersApi';
+import { useCreateAnswerMutation, useVoteAnswerMutation } from '../features/answers/answersApi';
+import { Layout } from '../components/Layout';
 
 export function QuestionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data, isLoading, isError } = useGetQuestionQuery(id ?? '', { skip: !id });
   const [answerBody, setAnswerBody] = useState('');
   const [createAnswer, { isLoading: isSubmitting, error: submitError }] = useCreateAnswerMutation();
+  const [voteAnswer] = useVoteAnswerMutation();
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -21,39 +23,71 @@ export function QuestionDetailPage() {
     }
   };
 
-  if (isLoading) return <p>Loading...</p>;
-  if (isError || !data) return <p>Failed to load question.</p>;
+  const handleVote = (answerId: string, value: 1 | -1) => {
+    if (!id) return;
+    voteAnswer({ answerId, value, questionId: id });
+  };
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <p>Loading...</p>
+      </Layout>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <Layout>
+        <p className="error-text">Failed to load question.</p>
+      </Layout>
+    );
+  }
 
   const { question, answers } = data;
 
   return (
-    <div>
+    <Layout>
       <h1>{question.title}</h1>
       <p>{question.body}</p>
-      {question.tags.length > 0 && <p>Tags: {question.tags.join(', ')}</p>}
-
-      <hr />
-
-      <h2>Answers ({answers.length})</h2>
-      <ul>
-        {answers.map((answer) => (
-          <li key={answer._id}>
-            <p>{answer.body}</p>
-            <small>{answer.voteCount} votes</small>
-          </li>
+      <div>
+        {question.tags.map((tag) => (
+          <span className="tag" key={tag}>
+            {tag}
+          </span>
         ))}
-      </ul>
+      </div>
+      <p className="meta">asked by {question.username ?? 'unknown'}</p>
+
+      <h2>{answers.length} Answers</h2>
+      {answers.map((answer) => (
+        <div className="answer" key={answer._id}>
+          <div className="vote-controls">
+            <button type="button" onClick={() => handleVote(answer._id, 1)} aria-label="Upvote">
+              ▲
+            </button>
+            <span className="vote-count">{answer.voteCount}</span>
+            <button type="button" onClick={() => handleVote(answer._id, -1)} aria-label="Downvote">
+              ▼
+            </button>
+          </div>
+          <div>
+            <p>{answer.body}</p>
+            <p className="meta">answered by {answer.username ?? 'unknown'}</p>
+          </div>
+        </div>
+      ))}
 
       <h2>Add an answer</h2>
       <form onSubmit={handleSubmit}>
         <div>
           <textarea value={answerBody} onChange={(event) => setAnswerBody(event.target.value)} />
         </div>
-        {submitError && <p>Failed to submit answer.</p>}
+        {submitError && <p className="error-text">Failed to submit answer.</p>}
         <button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Submitting...' : 'Submit answer'}
         </button>
       </form>
-    </div>
+    </Layout>
   );
 }

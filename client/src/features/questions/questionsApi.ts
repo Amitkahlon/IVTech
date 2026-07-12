@@ -12,6 +12,7 @@ export interface Question {
   body: string;
   tags: string[];
   authorId: string;
+  username?: string;
   createdAt: string;
 }
 
@@ -25,6 +26,7 @@ export interface Answer {
   body: string;
   questionId: string;
   authorId: string;
+  username?: string;
   createdAt: string;
   voteCount: number;
 }
