@@ -7,3 +7,5 @@ export const TAGS_MAX_COUNT = 5;
 export const ANSWER_BODY_MIN = 10;
 export const ANSWER_BODY_MAX = 5000;
 export const SEARCH_MAX_LENGTH = 100;
+export const USERNAME_MAX_LENGTH = 50;
+export const PASSWORD_MAX_LENGTH = 100;
