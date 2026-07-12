@@ -69,11 +69,23 @@ export function QuestionDetailPage() {
       {answers.map((answer) => (
         <div className="answer" key={answer._id}>
           <div className="vote-controls">
-            <button type="button" onClick={() => handleVote(answer._id, 1)} aria-label="Upvote">
+            <button
+              type="button"
+              className={answer.myVote === 1 ? 'vote-active' : undefined}
+              onClick={() => handleVote(answer._id, 1)}
+              aria-label="Upvote"
+              aria-pressed={answer.myVote === 1}
+            >
               ▲
             </button>
             <span className="vote-count">{answer.voteCount}</span>
-            <button type="button" onClick={() => handleVote(answer._id, -1)} aria-label="Downvote">
+            <button
+              type="button"
+              className={answer.myVote === -1 ? 'vote-active' : undefined}
+              onClick={() => handleVote(answer._id, -1)}
+              aria-label="Downvote"
+              aria-pressed={answer.myVote === -1}
+            >
               ▼
             </button>
           </div>

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import mongoose from 'mongoose';
 import { Answer, Question, User } from '../models';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, optionalAuth } from '../middleware/auth';
 import { authorLookupStages } from '../utils/aggregation';
 
 export const questionsRouter = Router();
@@ -86,8 +86,8 @@ questionsRouter.get('/getQuestions', async (req, res) => {
   res.json({ questions, page, limit });
 });
 
-questionsRouter.get('/getQuestion/:id', async (req, res) => {
-  const { id } = req.params;
+questionsRouter.get('/getQuestion/:id', optionalAuth, async (req, res) => {
+  const id = String(req.params.id);
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     res.status(400).json({ error: 'Invalid question id' });
@@ -102,7 +102,7 @@ questionsRouter.get('/getQuestion/:id', async (req, res) => {
 
   const author = await User.findById(question.authorId).select('username');
 
-  const answers = await Answer.aggregate([
+  const pipeline: mongoose.PipelineStage[] = [
     { $match: { questionId: new mongoose.Types.ObjectId(id) } },
     {
       $lookup: {
@@ -117,6 +117,31 @@ questionsRouter.get('/getQuestion/:id', async (req, res) => {
         voteCount: { $sum: '$votes.value' },
       },
     },
+  ];
+
+  if (req.user) {
+    const currentUserId = new mongoose.Types.ObjectId(req.user.sub);
+    pipeline.push({
+      $addFields: {
+        myVote: {
+          $let: {
+            vars: {
+              mine: {
+                $filter: {
+                  input: '$votes',
+                  as: 'vote',
+                  cond: { $eq: ['$$vote.userId', currentUserId] },
+                },
+              },
+            },
+            in: { $arrayElemAt: ['$$mine.value', 0] },
+          },
+        },
+      },
+    });
+  }
+
+  pipeline.push(
     { $sort: { voteCount: -1, createdAt: 1 } },
     ...authorLookupStages(),
     {
@@ -127,9 +152,12 @@ questionsRouter.get('/getQuestion/:id', async (req, res) => {
         username: 1,
         createdAt: 1,
         voteCount: 1,
+        myVote: 1,
       },
     },
-  ]);
+  );
+
+  const answers = await Answer.aggregate(pipeline);
 
   res.json({
     question: { ...question.toObject(), username: author?.username },

@@ -25,3 +25,19 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
     res.status(401).json({ error: 'Invalid or expired token' });
   }
 }
+
+/** Attaches req.user when a valid token is present, but never rejects. */
+export function optionalAuth(req: Request, _res: Response, next: NextFunction): void {
+  const header = req.headers.authorization;
+  const token = header?.startsWith('Bearer ') ? header.slice('Bearer '.length) : undefined;
+
+  if (token) {
+    try {
+      req.user = verifyToken(token);
+    } catch {
+      // ignore invalid/expired token; treat the request as anonymous
+    }
+  }
+
+  next();
+}

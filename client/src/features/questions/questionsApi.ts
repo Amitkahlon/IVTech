@@ -29,6 +29,7 @@ export interface Answer {
   username?: string;
   createdAt: string;
   voteCount: number;
+  myVote?: 1 | -1;
 }
 
 export interface GetQuestionsParams {
