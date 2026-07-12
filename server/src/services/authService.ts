@@ -1,7 +1,6 @@
 import jwt from 'jsonwebtoken';
 import type { IUser } from '../models';
 
-const JWT_SECRET = process.env.JWT_SECRET;
 const TOKEN_EXPIRATION = '1h';
 
 export interface AuthTokenPayload {
@@ -10,10 +9,11 @@ export interface AuthTokenPayload {
 }
 
 function getSecret(): string {
-  if (!JWT_SECRET) {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
     throw new Error('JWT_SECRET environment variable is not set');
   }
-  return JWT_SECRET;
+  return secret;
 }
 
 export function generateToken(user: IUser): string {
