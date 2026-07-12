@@ -44,8 +44,10 @@ export function HomePage() {
       <ul>
         {data?.questions.map((question) => (
           <li key={question._id}>
-            <strong>{question.title}</strong> — {question.answerCount} answers,{' '}
-            {question.voteCount} votes
+            <Link to={`/questions/${question._id}`}>
+              <strong>{question.title}</strong>
+            </Link>{' '}
+            — {question.answerCount} answers, {question.voteCount} votes
             {question.tags.length > 0 && <> [{question.tags.join(', ')}]</>}
           </li>
         ))}

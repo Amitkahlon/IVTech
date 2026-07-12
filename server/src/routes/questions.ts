@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import mongoose from 'mongoose';
-import { Question } from '../models';
+import { Answer, Question } from '../models';
 import { requireAuth } from '../middleware/auth';
 
 export const questionsRouter = Router();
@@ -81,6 +81,50 @@ questionsRouter.get('/getQuestions', async (req, res) => {
   const questions = await Question.aggregate(pipeline);
 
   res.json({ questions, page, limit });
+});
+
+questionsRouter.get('/getQuestion/:id', async (req, res) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    res.status(400).json({ error: 'Invalid question id' });
+    return;
+  }
+
+  const question = await Question.findById(id);
+  if (!question) {
+    res.status(404).json({ error: 'Question not found' });
+    return;
+  }
+
+  const answers = await Answer.aggregate([
+    { $match: { questionId: new mongoose.Types.ObjectId(id) } },
+    {
+      $lookup: {
+        from: 'votes',
+        localField: '_id',
+        foreignField: 'answerId',
+        as: 'votes',
+      },
+    },
+    {
+      $addFields: {
+        voteCount: { $sum: '$votes.value' },
+      },
+    },
+    { $sort: { voteCount: -1, createdAt: 1 } },
+    {
+      $project: {
+        body: 1,
+        questionId: 1,
+        authorId: 1,
+        createdAt: 1,
+        voteCount: 1,
+      },
+    },
+  ]);
+
+  res.json({ question, answers });
 });
 
 questionsRouter.post('/createQuestion', requireAuth, async (req, res) => {

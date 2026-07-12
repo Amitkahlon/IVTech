@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { connectDB } from './db';
 import { authRouter } from './routes/auth';
 import { questionsRouter } from './routes/questions';
+import { answersRouter } from './routes/answers';
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api/auth', authRouter);
 app.use('/api', questionsRouter);
+app.use('/api', answersRouter);
 
 connectDB(mongoUri)
   .then(() => {

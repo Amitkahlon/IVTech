@@ -6,7 +6,7 @@ interface CreateQuestionRequest {
   tags: string[];
 }
 
-interface Question {
+export interface Question {
   _id: string;
   title: string;
   body: string;
@@ -20,6 +20,15 @@ export interface QuestionWithCounts extends Question {
   voteCount: number;
 }
 
+export interface Answer {
+  _id: string;
+  body: string;
+  questionId: string;
+  authorId: string;
+  createdAt: string;
+  voteCount: number;
+}
+
 export interface GetQuestionsParams {
   search?: string;
   page?: number;
@@ -30,6 +39,11 @@ interface GetQuestionsResponse {
   questions: QuestionWithCounts[];
   page: number;
   limit: number;
+}
+
+interface GetQuestionResponse {
+  question: Question;
+  answers: Answer[];
 }
 
 export const questionsApi = apiSlice.injectEndpoints({
@@ -59,7 +73,11 @@ export const questionsApi = apiSlice.injectEndpoints({
             ]
           : [{ type: 'Question' as const, id: 'LIST' }],
     }),
+    getQuestion: builder.query<GetQuestionResponse, string>({
+      query: (id) => `/getQuestion/${id}`,
+      providesTags: (_result, _error, id) => [{ type: 'Question', id }],
+    }),
   }),
 });
 
-export const { useCreateQuestionMutation, useGetQuestionsQuery } = questionsApi;
+export const { useCreateQuestionMutation, useGetQuestionsQuery, useGetQuestionQuery } = questionsApi;
