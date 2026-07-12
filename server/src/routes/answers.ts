@@ -2,6 +2,7 @@ import { Router } from 'express';
 import mongoose from 'mongoose';
 import { Answer, Question, Vote } from '../models';
 import { requireAuth } from '../middleware/auth';
+import { ANSWER_BODY_MIN, ANSWER_BODY_MAX } from '../utils/validation';
 
 export const answersRouter = Router();
 
@@ -13,8 +14,17 @@ answersRouter.post('/answer', requireAuth, async (req, res) => {
     return;
   }
 
-  if (typeof body !== 'string' || !body.trim()) {
+  if (typeof body !== 'string') {
     res.status(400).json({ error: 'body is required' });
+    return;
+  }
+
+  const trimmedBody = body.trim();
+
+  if (trimmedBody.length < ANSWER_BODY_MIN || trimmedBody.length > ANSWER_BODY_MAX) {
+    res.status(400).json({
+      error: `body must be between ${ANSWER_BODY_MIN} and ${ANSWER_BODY_MAX} characters`,
+    });
     return;
   }
 
@@ -25,7 +35,7 @@ answersRouter.post('/answer', requireAuth, async (req, res) => {
   }
 
   const answer = await Answer.create({
-    body,
+    body: trimmedBody,
     questionId,
     authorId: req.user!.sub,
   });

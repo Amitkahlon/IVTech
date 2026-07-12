@@ -4,11 +4,13 @@ import { useGetQuestionQuery } from '../features/questions/questionsApi';
 import { useCreateAnswerMutation, useVoteAnswerMutation } from '../features/answers/answersApi';
 import { Layout } from '../components/Layout';
 import { formatDate } from '../utils/formatDate';
+import { ANSWER_BODY_MIN, ANSWER_BODY_MAX } from '../utils/validation';
 
 export function QuestionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data, isLoading, isError } = useGetQuestionQuery(id ?? '', { skip: !id });
   const [answerBody, setAnswerBody] = useState('');
+  const [validationError, setValidationError] = useState<string | null>(null);
   const [createAnswer, { isLoading: isSubmitting, error: submitError }] = useCreateAnswerMutation();
   const [voteAnswer] = useVoteAnswerMutation();
 
@@ -16,8 +18,16 @@ export function QuestionDetailPage() {
     event.preventDefault();
     if (!id) return;
 
+    setValidationError(null);
+    const trimmedBody = answerBody.trim();
+
+    if (trimmedBody.length < ANSWER_BODY_MIN || trimmedBody.length > ANSWER_BODY_MAX) {
+      setValidationError(`Answer must be between ${ANSWER_BODY_MIN} and ${ANSWER_BODY_MAX} characters.`);
+      return;
+    }
+
     try {
-      await createAnswer({ questionId: id, body: answerBody }).unwrap();
+      await createAnswer({ questionId: id, body: trimmedBody }).unwrap();
       setAnswerBody('');
     } catch {
       // error is surfaced via the `submitError` state below
@@ -105,7 +115,11 @@ export function QuestionDetailPage() {
           value={answerBody}
           onChange={(event) => setAnswerBody(event.target.value)}
           placeholder="Type answer here"
+          minLength={ANSWER_BODY_MIN}
+          maxLength={ANSWER_BODY_MAX}
+          required
         />
+        {validationError && <p className="error-text">{validationError}</p>}
         {submitError && <p className="error-text">Failed to submit answer.</p>}
         <div className="answer-form-actions">
           <button type="submit" disabled={isSubmitting}>

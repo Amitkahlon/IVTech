@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { Answer, Question, User } from '../models';
 import { requireAuth } from '../middleware/auth';
 import { authorLookupStages } from '../utils/aggregation';
+import { QUESTION_TITLE_MIN, QUESTION_TITLE_MAX, QUESTION_BODY_MIN, QUESTION_BODY_MAX, TAG_MAX_LENGTH, TAGS_MAX_COUNT } from '../utils/validation';
 
 export const questionsRouter = Router();
 
@@ -156,20 +157,49 @@ questionsRouter.get('/getQuestionAnswer/:questionId', requireAuth, async (req, r
 questionsRouter.post('/createQuestion', requireAuth, async (req, res) => {
   const { title, body, tags } = req.body ?? {};
 
-  if (typeof title !== 'string' || !title.trim() || typeof body !== 'string' || !body.trim()) {
+  if (typeof title !== 'string' || typeof body !== 'string') {
     res.status(400).json({ error: 'title and body are required' });
     return;
   }
 
-  if (tags !== undefined && (!Array.isArray(tags) || !tags.every((tag) => typeof tag === 'string'))) {
+  const trimmedTitle = title.trim();
+  const trimmedBody = body.trim();
+
+  if (trimmedTitle.length < QUESTION_TITLE_MIN || trimmedTitle.length > QUESTION_TITLE_MAX) {
+    res.status(400).json({
+      error: `title must be between ${QUESTION_TITLE_MIN} and ${QUESTION_TITLE_MAX} characters`,
+    });
+    return;
+  }
+
+  if (trimmedBody.length < QUESTION_BODY_MIN || trimmedBody.length > QUESTION_BODY_MAX) {
+    res.status(400).json({
+      error: `body must be between ${QUESTION_BODY_MIN} and ${QUESTION_BODY_MAX} characters`,
+    });
+    return;
+  }
+
+  if (tags !== undefined && !Array.isArray(tags)) {
     res.status(400).json({ error: 'tags must be an array of strings' });
     return;
   }
 
+  const trimmedTags: string[] = (tags ?? []).map((tag: unknown) => (typeof tag === 'string' ? tag.trim() : ''));
+
+  if (
+    trimmedTags.length > TAGS_MAX_COUNT ||
+    trimmedTags.some((tag) => tag.length === 0 || tag.length > TAG_MAX_LENGTH)
+  ) {
+    res.status(400).json({
+      error: `up to ${TAGS_MAX_COUNT} tags allowed, each 1-${TAG_MAX_LENGTH} characters`,
+    });
+    return;
+  }
+
   const question = await Question.create({
-    title,
-    body,
-    tags: tags ?? [],
+    title: trimmedTitle,
+    body: trimmedBody,
+    tags: trimmedTags,
     authorId: req.user!.sub,
   });
 
