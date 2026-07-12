@@ -3,7 +3,15 @@ import mongoose from 'mongoose';
 import { Answer, Question, User } from '../models';
 import { requireAuth } from '../middleware/auth';
 import { authorLookupStages } from '../utils/aggregation';
-import { QUESTION_TITLE_MIN, QUESTION_TITLE_MAX, QUESTION_BODY_MIN, QUESTION_BODY_MAX, TAG_MAX_LENGTH, TAGS_MAX_COUNT } from '../utils/validation';
+import {
+  QUESTION_TITLE_MIN,
+  QUESTION_TITLE_MAX,
+  QUESTION_BODY_MIN,
+  QUESTION_BODY_MAX,
+  TAG_MAX_LENGTH,
+  TAGS_MAX_COUNT,
+  SEARCH_MAX_LENGTH,
+} from '../utils/validation';
 
 export const questionsRouter = Router();
 
@@ -24,6 +32,16 @@ questionsRouter.get('/getQuestions', requireAuth, async (req, res) => {
 
   const page = parsePositiveInt(pageParam, 1);
   const limit = Math.min(parsePositiveInt(limitParam, DEFAULT_LIMIT), MAX_LIMIT);
+
+  if (search !== undefined && typeof search !== 'string') {
+    res.status(400).json({ error: 'search must be a single string value' });
+    return;
+  }
+
+  if (typeof search === 'string' && search.length > SEARCH_MAX_LENGTH) {
+    res.status(400).json({ error: `search must be at most ${SEARCH_MAX_LENGTH} characters` });
+    return;
+  }
 
   const pipeline: mongoose.PipelineStage[] = [];
 

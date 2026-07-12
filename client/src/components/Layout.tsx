@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { logout } from '../features/auth/authSlice';
 import { selectSearchQuery, setSearchQuery } from '../features/questions/questionsSlice';
 import { AddQuestionModal } from './AddQuestionModal';
+import { SEARCH_MAX_LENGTH } from '../utils/validation';
 
 export function Layout({ children }: { children: ReactNode }) {
   const dispatch = useAppDispatch();
@@ -29,6 +30,7 @@ export function Layout({ children }: { children: ReactNode }) {
             value={searchInput}
             onChange={(event) => setSearchInput(event.target.value)}
             placeholder="Search"
+            maxLength={SEARCH_MAX_LENGTH}
           />
         </form>
         <div className="top-bar-actions">
